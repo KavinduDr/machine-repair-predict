@@ -1,3 +1,4 @@
+from tkinter import PhotoImage
 from customtkinter import *
 from PIL import Image
 
@@ -5,6 +6,12 @@ from PIL import Image
 app = CTk()
 app.geometry("500x500")
 set_appearance_mode("dark")
+app.title("Machine Learning")
+
+# Set the title bar icon  
+icon_image = PhotoImage(file='./assests/brain.png')  # Use a PNG or another supported format  
+app.iconphoto(False, icon_image)
+app.icon_image = icon_image
 
 # Load the initial image
 my_image = CTkImage(light_image=Image.open("./assests/ml.jpg"),
