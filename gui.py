@@ -1,6 +1,12 @@
+import joblib
 from tkinter import PhotoImage
 from customtkinter import *
 from PIL import Image
+import numpy as np
+
+# Load the saved scaler and model
+scaler = joblib.load('scaler.pkl')
+model = joblib.load('svc_model.pkl')
 
 # Initialize the main app
 app = CTk()
@@ -18,12 +24,35 @@ my_image = CTkImage(light_image=Image.open("./assests/ml.jpg"),
                     dark_image=Image.open("./assests/ml.jpg"),
                     size=(500, 500))
 
+def predict():
+    """Get user input, process it, and make predictions."""
+    try:
+        # Get values from input fields
+        type_val = float(type_entry.get())
+        air_temp_val = float(air_temp_entry.get())
+        proc_temp_val = float(proc_temp_entry.get())
+        torque_val = float(torque_entry.get())
+        tool_wear_val = float(tool_wear_entry.get())
+
+        # Create a feature array and scale it
+        input_features = np.array([[type_val, air_temp_val, proc_temp_val, torque_val, tool_wear_val]])
+        scaled_features = scaler.transform(input_features)
+
+        # Make predictions
+        prediction = model.predict(scaled_features)
+
+        # Display the result
+        result = "Prediction: Machine will fail" if prediction[0] == 1 else "Prediction: No Failure"
+        CTkLabel(app, text=result, font=("Arial", 18, "bold")).pack(pady=10)
+
+    except ValueError:
+        CTkLabel(app, text="Invalid input! Please enter numeric values.", font=("Arial", 14, "bold"), fg_color="red").pack(pady=10)
+
 # Function to replace content in the main window
 def click_handler():
     # Clear the existing content
     for widget in app.winfo_children():
         widget.destroy()
-
 
     label = CTkLabel(app, text="Enter values of the machine", font=("Arial", 20, "bold"))
     label.pack(pady=10)
@@ -32,15 +61,7 @@ def click_handler():
     input_frame = CTkFrame(app, width=250)  # 50% of 500px width
     input_frame.pack(pady=10, anchor="center")
 
-    # UDI input
-    udi_frame = CTkFrame(input_frame)
-    udi_frame.pack(pady=5, anchor="w")
-
-    udi_label = CTkLabel(udi_frame, text="UDI:", font=("Arial", 15, "bold"), width=170)
-    udi_label.pack(side="left", padx=5)
-
-    udi_entry = CTkEntry(udi_frame, width=150)
-    udi_entry.pack(side="right", padx=5)
+    global type_entry, air_temp_entry, proc_temp_entry, torque_entry, tool_wear_entry  # Make fields accessible in predict()
 
     # Type input
     type_frame = CTkFrame(input_frame)
@@ -95,7 +116,7 @@ def click_handler():
     # Predict Button
     predict_btn = CTkButton(master=app, text="Predict", corner_radius=32, fg_color="transparent",
                             hover_color="#4158D0", border_color="#4158D0", border_width=2,
-                            font=("Arial", 20, "bold"), width=200, height=50, command=click_handler)
+                            font=("Arial", 20, "bold"), width=200, height=50, command=predict)
     predict_btn.pack(pady=20)
 
     back_btn = CTkButton(master=app, text="Back", corner_radius=32, fg_color="transparent",
